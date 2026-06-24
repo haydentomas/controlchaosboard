@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>C&C Board</title>
+  <style>
+    :root {
+      --bg-a: #0d2c21;
+      --bg-b: #132f25;
+      --line: #3f5e4f;
+      --text: #f3efdd;
+      --muted: #d2cdb6;
+      --accent: #efe9cf;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(circle at 20% 0%, #1f4a39 0%, transparent 35%),
+        radial-gradient(circle at 80% 100%, #163b2d 0%, transparent 35%),
+        repeating-linear-gradient(0deg, transparent 0 39px, rgba(255,255,255,0.03) 39px 40px),
+        linear-gradient(90deg, var(--bg-a), var(--bg-b) 55%, var(--bg-a));
+      color: var(--text);
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      overflow: hidden;
+    }
+
+    .board {
+      width: 100%;
+      height: 100%;
+      padding: 28px 36px;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 10px;
+    }
+
+    .title {
+      text-align: center;
+      font-size: clamp(30px, 3.2vw, 52px);
+      letter-spacing: 2px;
+      font-weight: 800;
+      color: var(--accent);
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .hr {
+      border-top: 2px solid var(--line);
+      margin: 0 2%;
+    }
+
+    .columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      min-height: 0;
+    }
+
+    .col {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 10px;
+    }
+
+    .col h2 {
+      margin: 0;
+      font-size: clamp(24px, 2.4vw, 38px);
+      letter-spacing: 1px;
+      color: var(--accent);
+      border-bottom: 2px solid var(--line);
+      padding-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    ol {
+      margin: 0;
+      padding-left: 36px;
+      font-size: clamp(22px, 2.1vw, 33px);
+      line-height: 1.32;
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    li { margin: 0 0 6px 0; }
+
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 2px solid var(--line);
+      padding-top: 8px;
+      font-size: clamp(18px, 1.35vw, 24px);
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .empty {
+      opacity: 0.75;
+      list-style: none;
+      margin-left: -10px;
+    }
+  </style>
+</head>
+<body>
+  <main class="board">
+    <div id="title" class="title">[C&C] DOMS vs SUBS</div>
+    <div class="hr"></div>
+
+    <section class="columns">
+      <div class="col">
+        <h2>Top Doms</h2>
+        <ol id="domList"></ol>
+      </div>
+      <div class="col">
+        <h2>Top Subs</h2>
+        <ol id="subList"></ol>
+      </div>
+    </section>
+
+    <div class="meta">
+      <span id="shown">Shown D:0/0 S:0/0</span>
+      <span id="updated">Upd: --:-- -- SLT</span>
+    </div>
+  </main>
+
+  <script>
+    function getParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name) || "";
+    }
+
+    function isPlayerLine(line) {
+      return /^\d+\.\s+/.test(line) && line.indexOf("| L") !== -1 && line.indexOf("XP") !== -1;
+    }
+
+    function parsePayload(text) {
+      const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      const doms = [];
+      const subs = [];
+
+      let section = "";
+
+      for (const line of lines) {
+        const up = line.toUpperCase();
+
+        if (up.indexOf("[C&C]") !== -1 || up.indexOf("DOMS VS SUBS") !== -1) {
+          document.getElementById("title").textContent = line;
+          continue;
+        }
+
+        if (up === "DOMS") {
+          section = "DOM";
+          continue;
+        }
+
+        if (up === "SUBS") {
+          section = "SUB";
+          continue;
+        }
+
+        if (up.indexOf("SHOWN D:") === 0) {
+          document.getElementById("shown").textContent = line;
+          continue;
+        }
+
+        if (up.indexOf("UPD:") === 0 || up.indexOf("UPDATED:") === 0) {
+          document.getElementById("updated").textContent = line;
+          continue;
+        }
+
+        if (!isPlayerLine(line)) {
+          continue;
+        }
+
+        if (section === "DOM") {
+          doms.push(line.replace(/^\d+\.\s+/, ""));
+        } else if (section === "SUB") {
+          subs.push(line.replace(/^\d+\.\s+/, ""));
+        }
+      }
+
+      return { doms, subs };
+    }
+
+    function renderList(id, items) {
+      const el = document.getElementById(id);
+      el.innerHTML = "";
+
+      if (!items.length) {
+        const li = document.createElement("li");
+        li.className = "empty";
+        li.textContent = "No entries";
+        el.appendChild(li);
+        return;
+      }
+
+      for (const item of items) {
+        const li = document.createElement("li");
+        li.textContent = item;
+        el.appendChild(li);
+      }
+    }
+
+    const raw = getParam("t");
+    const decoded = raw ? decodeURIComponent(raw) : "";
+    const payload = decoded || "[C&C] DOMS vs SUBS\nDOMS\nSUBS\nShown D:0/0 S:0/0\nUpd: --:-- -- SLT";
+
+    const parsed = parsePayload(payload);
+    renderList("domList", parsed.doms.slice(0, 10));
+    renderList("subList", parsed.subs.slice(0, 10));
+  </script>
+</body>
+</html>
