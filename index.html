@@ -1,137 +1,134 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>C&C Board</title>
   <style>
-    :root {
-      --bg-a: #0d2c21;
-      --bg-b: #132f25;
-      --line: #3f5e4f;
-      --text: #f3efdd;
-      --muted: #d2cdb6;
-      --accent: #efe9cf;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a1a;
+      color: #e8dcc8;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
-    * { box-sizing: border-box; }
-
-    html, body {
-      margin: 0;
+    .outer-trim {
+      background: linear-gradient(135deg, #8b7355 0%, #a0826d 50%, #8b7355 100%);
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.5), 0 8px 16px rgba(0,0,0,0.7);
+      max-width: 1400px;
       width: 100%;
-      height: 100%;
-      background:
-        radial-gradient(circle at 20% 0%, #1f4a39 0%, transparent 35%),
-        radial-gradient(circle at 80% 100%, #163b2d 0%, transparent 35%),
-        repeating-linear-gradient(0deg, transparent 0 39px, rgba(255,255,255,0.03) 39px 40px),
-        linear-gradient(90deg, var(--bg-a), var(--bg-b) 55%, var(--bg-a));
-      color: var(--text);
-      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
-      overflow: hidden;
     }
 
     .board {
-      width: 100%;
-      height: 100%;
-      padding: 28px 36px;
-      display: grid;
-      grid-template-rows: auto auto 1fr auto;
-      gap: 10px;
+      background: #1a1a1a;
+      padding: 30px;
+      border-radius: 4px;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .header {
+      text-align: center;
+      padding: 20px;
+      border-bottom: 2px solid #4a4a4a;
     }
 
     .title {
-      text-align: center;
-      font-size: clamp(30px, 3.2vw, 52px);
+      font-size: 2.5em;
+      font-weight: bold;
       letter-spacing: 2px;
-      font-weight: 800;
-      color: var(--accent);
+      color: #f0e8cc;
       text-transform: uppercase;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .hr {
-      border-top: 2px solid var(--line);
-      margin: 0 2%;
     }
 
     .columns {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 40px;
-      min-height: 0;
     }
 
-    .col {
-      min-height: 0;
-      display: grid;
-      grid-template-rows: auto 1fr;
-      gap: 10px;
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
     }
 
-    .col h2 {
-      margin: 0;
-      font-size: clamp(24px, 2.4vw, 38px);
-      letter-spacing: 1px;
-      color: var(--accent);
-      border-bottom: 2px solid var(--line);
-      padding-bottom: 6px;
+    .column h2 {
+      font-size: 1.8em;
+      color: #f0e8cc;
       text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 2px solid #4a4a4a;
+      padding-bottom: 10px;
     }
 
     ol {
-      margin: 0;
-      padding-left: 36px;
-      font-size: clamp(22px, 2.1vw, 33px);
-      line-height: 1.32;
-      color: var(--text);
-      overflow: hidden;
+      list-style: decimal;
+      padding-left: 30px;
+      font-size: 1.1em;
+      line-height: 1.6;
     }
 
-    li { margin: 0 0 6px 0; }
-
-    .meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-top: 2px solid var(--line);
-      padding-top: 8px;
-      font-size: clamp(18px, 1.35vw, 24px);
-      color: var(--muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    li {
+      margin-bottom: 8px;
+      color: #e8dcc8;
     }
 
     .empty {
-      opacity: 0.75;
-      list-style: none;
-      margin-left: -10px;
+      color: #707070;
+      font-style: italic;
+    }
+
+    .footer {
+      text-align: center;
+      border-top: 2px solid #4a4a4a;
+      padding-top: 15px;
+      font-size: 0.9em;
+      color: #b8a890;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
   </style>
 </head>
 <body>
-  <main class="board">
-    <div id="title" class="title">[C&C] DOMS vs SUBS</div>
-    <div class="hr"></div>
+  <div class="outer-trim">
+    <div class="board">
+      <div class="container">
+        <div class="header">
+          <div class="title" id="title">[C&C] DOMS vs SUBS</div>
+        </div>
 
-    <section class="columns">
-      <div class="col">
-        <h2>Top Doms</h2>
-        <ol id="domList"></ol>
-      </div>
-      <div class="col">
-        <h2>Top Subs</h2>
-        <ol id="subList"></ol>
-      </div>
-    </section>
+        <div class="columns">
+          <div class="column">
+            <h2>Top Doms</h2>
+            <ol id="domList"></ol>
+          </div>
+          <div class="column">
+            <h2>Top Subs</h2>
+            <ol id="subList"></ol>
+          </div>
+        </div>
 
-    <div class="meta">
-      <span id="shown">Shown D:0/0 S:0/0</span>
-      <span id="updated">Upd: --:-- -- SLT</span>
+        <div class="footer">
+          <span id="shown">Shown D:0/0 S:0/0</span>
+          <span id="updated">Upd: --:-- -- SLT</span>
+        </div>
+      </div>
     </div>
-  </main>
+  </div>
 
   <script>
     function getParam(name) {
@@ -139,85 +136,75 @@
       return params.get(name) || "";
     }
 
-    function isPlayerLine(line) {
-      return /^\d+\.\s+/.test(line) && line.indexOf("| L") !== -1 && line.indexOf("XP") !== -1;
-    }
-
-    function parsePayload(text) {
-      const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    function parseBoard(text) {
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
       const doms = [];
       const subs = [];
-
-      let section = "";
+      let section = '';
 
       for (const line of lines) {
-        const up = line.toUpperCase();
+        const upper = line.toUpperCase();
 
-        if (up.indexOf("[C&C]") !== -1 || up.indexOf("DOMS VS SUBS") !== -1) {
-          document.getElementById("title").textContent = line;
+        if (upper.includes('[C&C]') || upper.includes('DOMS VS SUBS')) {
+          document.getElementById('title').textContent = line;
           continue;
         }
 
-        if (up === "DOMS") {
-          section = "DOM";
+        if (upper === 'DOMS') {
+          section = 'dom';
           continue;
         }
 
-        if (up === "SUBS") {
-          section = "SUB";
+        if (upper === 'SUBS') {
+          section = 'sub';
           continue;
         }
 
-        if (up.indexOf("SHOWN D:") === 0) {
-          document.getElementById("shown").textContent = line;
+        if (upper.includes('SHOWN D:')) {
+          document.getElementById('shown').textContent = line;
           continue;
         }
 
-        if (up.indexOf("UPD:") === 0 || up.indexOf("UPDATED:") === 0) {
-          document.getElementById("updated").textContent = line;
+        if (upper.includes('UPD:')) {
+          document.getElementById('updated').textContent = line;
           continue;
         }
 
-        if (!isPlayerLine(line)) {
-          continue;
-        }
-
-        if (section === "DOM") {
-          doms.push(line.replace(/^\d+\.\s+/, ""));
-        } else if (section === "SUB") {
-          subs.push(line.replace(/^\d+\.\s+/, ""));
+        if (/^\d+\.\s+/.test(line) && line.includes('| L') && line.includes('XP')) {
+          const clean = line.replace(/^\d+\.\s+/, '');
+          if (section === 'dom') doms.push(clean);
+          else if (section === 'sub') subs.push(clean);
         }
       }
 
       return { doms, subs };
     }
 
-    function renderList(id, items) {
+    function render(id, items) {
       const el = document.getElementById(id);
-      el.innerHTML = "";
+      el.innerHTML = '';
 
-      if (!items.length) {
-        const li = document.createElement("li");
-        li.className = "empty";
-        li.textContent = "No entries";
+      if (items.length === 0) {
+        const li = document.createElement('li');
+        li.className = 'empty';
+        li.textContent = 'No entries';
         el.appendChild(li);
         return;
       }
 
       for (const item of items) {
-        const li = document.createElement("li");
+        const li = document.createElement('li');
         li.textContent = item;
         el.appendChild(li);
       }
     }
 
-    const raw = getParam("t");
-    const decoded = raw ? decodeURIComponent(raw) : "";
-    const payload = decoded || "[C&C] DOMS vs SUBS\nDOMS\nSUBS\nShown D:0/0 S:0/0\nUpd: --:-- -- SLT";
+    const raw = getParam('t');
+    const text = raw ? decodeURIComponent(raw) : '';
+    const data = parseBoard(text);
 
-    const parsed = parsePayload(payload);
-    renderList("domList", parsed.doms.slice(0, 10));
-    renderList("subList", parsed.subs.slice(0, 10));
+    render('domList', data.doms.slice(0, 10));
+    render('subList', data.subs.slice(0, 10));
   </script>
 </body>
 </html>
