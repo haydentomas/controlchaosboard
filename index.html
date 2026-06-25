@@ -95,6 +95,25 @@
       justify-content: space-between;
       align-items: center;
     }
+    .event-badge {
+      background: linear-gradient(135deg, #ffd700, #ffa500);
+      color: #000;
+      font-weight: bold;
+      text-align: center;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 1.25em;
+      margin-top: 15px;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+      animation: pulse 2s infinite;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
+      50% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.8); }
+      100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
+    }
   </style>
 </head>
 <body>
@@ -103,6 +122,7 @@
       <div class="container">
         <div class="header">
           <div class="title" id="title">Control & Chaos Leaderboard</div>
+          <div id="eventBadge" class="event-badge" style="display: none;"></div>
         </div>
 
         <div class="columns">
@@ -131,6 +151,11 @@
     }
 
     function parseBoard(text) {
+      const badgeEl = document.getElementById('eventBadge');
+      if (badgeEl) {
+        badgeEl.style.display = 'none';
+      }
+
       const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
       const doms = [];
       const subs = [];
@@ -139,8 +164,16 @@
       for (const line of lines) {
         const upper = line.toUpperCase();
 
+        if (upper.includes('COIN HUNT:')) {
+          if (badgeEl) {
+            badgeEl.textContent = line;
+            badgeEl.style.display = 'block';
+          }
+          continue;
+        }
+
         if (upper.includes('[C&C]') || upper.includes('DOMS VS SUBS')) {
-          document.getElementById('title').textContent = line;
+          // Keep the static title defined in the HTML
           continue;
         }
 
