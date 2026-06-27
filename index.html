@@ -114,6 +114,49 @@
       50% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.8); }
       100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
     }
+
+    .stats-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 10px 0;
+    }
+    .stats-section {
+      border: 2px solid #4a4a4a;
+      background: rgba(255,255,255,0.02);
+      padding: 15px;
+      border-radius: 6px;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    }
+    .stats-section h3 {
+      margin: 0 0 12px 0;
+      color: #f0e8cc;
+      text-transform: uppercase;
+      font-size: 1.25em;
+      border-bottom: 2px solid #4a4a4a;
+      padding-bottom: 6px;
+      letter-spacing: 1px;
+    }
+    .stat-line {
+      font-size: 1.15em;
+      margin-bottom: 8px;
+      color: #e8dcc8;
+    }
+    .stat-line:last-child {
+      margin-bottom: 0;
+    }
+    .stat-key {
+      font-weight: bold;
+      color: #b8a890;
+    }
+    .stat-val {
+      color: #f0e8cc;
+      text-shadow: 0 0 5px rgba(240, 232, 204, 0.2);
+    }
+    .text-active {
+      color: #9cdb9c !important;
+      text-shadow: 0 0 8px rgba(156, 219, 156, 0.4);
+    }
   </style>
 </head>
 <body>
@@ -135,6 +178,8 @@
             <ol id="subList"></ol>
           </div>
         </div>
+
+        <div id="statsContainer" class="stats-container" style="display: none;"></div>
 
         <div class="footer">
           <span id="shown">Shown D:0/0 S:0/0</span>
@@ -164,7 +209,7 @@
       for (const line of lines) {
         const upper = line.toUpperCase();
 
-        if (upper.includes('COIN HUNT:')) {
+        if (upper.includes('COIN HUNT:') || upper.includes('RELIC:') || upper.includes('THRONE:') || upper.includes('CAGE:')) {
           if (badgeEl) {
             badgeEl.textContent = line;
             badgeEl.style.display = 'block';
@@ -207,6 +252,55 @@
       return { doms, subs };
     }
 
+    function parseStats(text) {
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      let html = "";
+      let currentSection = null;
+
+      for (const line of lines) {
+        if (line.startsWith("==") || line.startsWith("--")) {
+          continue;
+        }
+        if (line.includes("UPD:") || line.includes("UPDATED:")) {
+          document.getElementById('updated').textContent = line;
+          continue;
+        }
+        if (line === "[Control and Chaos]" || line === "GAME STATS") {
+          continue;
+        }
+        
+        if (line === line.toUpperCase() && !line.includes(":") && !/\d/.test(line)) {
+          if (currentSection) {
+            html += "</div>";
+          }
+          html += `<div class="stats-section"><h3>${line}</h3>`;
+          currentSection = line;
+        } else {
+          if (!currentSection) {
+            html += `<div class="stats-section">`;
+            currentSection = "INFO";
+          }
+          let content = line;
+          if (line.includes(":")) {
+            const parts = line.split(":");
+            const key = parts[0].trim();
+            const val = parts.slice(1).join(":").trim();
+            
+            let valClass = "stat-val";
+            if (val.startsWith("Active") || val.startsWith("Live") || (val !== "Inactive" && val !== "None" && (key === "Coin Hunt" || key === "Relic Carry" || key === "Throne Command" || key === "Cage Break"))) {
+              valClass += " text-active";
+            }
+            content = `<span class="stat-key">${key}:</span> <span class="${valClass}">${val}</span>`;
+          }
+          html += `<div class="stat-line">${content}</div>`;
+        }
+      }
+      if (currentSection) {
+        html += "</div>";
+      }
+      return html;
+    }
+
     function render(id, items) {
       const el = document.getElementById(id);
       el.innerHTML = '';
@@ -228,10 +322,20 @@
 
     const raw = getParam('t');
     const text = raw ? decodeURIComponent(raw) : '';
-    const data = parseBoard(text);
+    const mode = getParam('m');
 
-    render('domList', data.doms.slice(0, 10));
-    render('subList', data.subs.slice(0, 10));
+    if (mode === 'stats') {
+      document.getElementById('title').textContent = "Control & Chaos Game Stats";
+      document.querySelector('.columns').style.display = 'none';
+      document.getElementById('shown').style.display = 'none';
+      const container = document.getElementById('statsContainer');
+      container.innerHTML = parseStats(text);
+      container.style.display = 'flex';
+    } else {
+      const data = parseBoard(text);
+      render('domList', data.doms.slice(0, 10));
+      render('subList', data.subs.slice(0, 10));
+    }
   </script>
 </body>
 </html>
